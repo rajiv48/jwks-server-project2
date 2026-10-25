@@ -3,3 +3,7 @@ __pycache__/
 .pytest_cache/
 .coverage
 *.pyc
+
+
+# SQLite database containing private RSA keys
+totally_not_my_privateKeys.db
