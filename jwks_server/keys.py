@@ -131,9 +131,20 @@ class KeyStore:
             save_key,
         )
 
-        with self._lock:
-            with open_database(self._db_path) as connection:
-                now = self._clock()
+        with self._lock, open_database(self._db_path) as connection:
+            now = self._clock()
+
+            valid_keys = load_keys(
+                connection,
+                expired=False,
+                now=now,
+            )
+
+            if not valid_keys:
+                new_record = generate_key(
+                    now + self._lifetime + timedelta(seconds=2)
+                )
+                save_key(connection, new_record)
 
                 valid_keys = load_keys(
                     connection,
@@ -141,19 +152,7 @@ class KeyStore:
                     now=now,
                 )
 
-                if not valid_keys:
-                    new_record = generate_key(
-                        now + self._lifetime + timedelta(seconds=2)
-                    )
-                    save_key(connection, new_record)
-
-                    valid_keys = load_keys(
-                        connection,
-                        expired=False,
-                        now=now,
-                    )
-
-                return valid_keys
+            return valid_keys
 
     def active_key(self) -> KeyRecord:
         """Return the valid RSA key with the latest expiration."""
@@ -171,15 +170,14 @@ class KeyStore:
             open_database,
         )
 
-        with self._lock:
-            with open_database(self._db_path) as connection:
-                expired_keys = load_keys(
-                    connection,
-                    expired=True,
-                    now=self._clock(),
-                )
+        with self._lock, open_database(self._db_path) as connection:
+            expired_keys = load_keys(
+                connection,
+                expired=True,
+                now=self._clock(),
+            )
 
-                return max(
-                    expired_keys,
-                    key=lambda key: key.expires_at,
-                )
+            return max(
+                expired_keys,
+                key=lambda key: key.expires_at,
+            )
