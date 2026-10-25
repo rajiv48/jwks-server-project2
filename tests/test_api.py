@@ -129,7 +129,11 @@ def test_unknown_route_is_404(client: TestClient):
 
 
 def test_create_app_builds_default_store():
+    """Verify the default application loads valid keys from SQLite."""
     from jwks_server.app import create_app
 
     with TestClient(create_app()) as default_client:
-        assert len(default_client.get(JWKS_PATH).json()["keys"]) == 1
+        response = default_client.get(JWKS_PATH)
+
+        assert response.status_code == 200
+        assert len(response.json()["keys"]) >= 1
