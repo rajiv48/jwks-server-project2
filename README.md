@@ -202,7 +202,7 @@ jwks-server-project2/
 └── README.md
 ```
 
-The screenshot files should be added before the final submission.
+
 
 ## Design Notes
 
